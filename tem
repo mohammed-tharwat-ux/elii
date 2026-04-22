@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>elii - Early Logic Instant Insight</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { DEFAULT: '#EAB308', light: '#FDE047', dark: '#A16207', dim: '#854D0E' },
+                        base: { DEFAULT: '#0C0806', light: '#151008', card: '#1A1310', elevated: '#221A12', border: '#2E2318' },
+                        warm: { 50: '#FAF5EE', 100: '#F0E6D4', 200: '#D4C4A8', 300: '#B8A07A', 400: '#8C7456', 500: '#6B5640', 600: '#4A3A2A', 700: '#3A2D20', 800: '#2A1F15', 900: '#1A1308' }
+                    },
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif'],
+                        inter: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Cairo', sans-serif; background: #0C0806; color: #F0E6D4; overflow-x: hidden; }
+        .font-inter { font-family: 'Inter', sans-serif; }
+
+        .glass-nav {
+            background: rgba(12, 8, 6, 0.7);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(234, 179, 8, 0.08);
+        }
+        .glass-card {
+            background: rgba(26, 19, 16, 0.8);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(234, 179, 8, 0.08);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .glass-card:hover {
+            border-color: rgba(234, 179, 8, 0.25);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px -15px rgba(234, 179, 8, 0.08);
+        }
+
+        .text-gradient {
+            background: linear-gradient(to left, #FDE047, #EAB308, #A16207);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .text-gradient-warm {
+            background: linear-gradient(to left, #F0E6D4, #D4C4A8, #8C7456);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .text-gradient-red {
+            background: linear-gradient(to left, #FCA5A5, #EF4444, #B91C1C);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .text-gradient-amber {
+            background: linear-gradient(to left, #FCD34D, #F59E0B, #D97706);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .bg-grid {
+            background-size: 40px 40px;
+            background-image: linear-gradient(to right, rgba(234, 179, 8, 0.025) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(234, 179, 8, 0.025) 1px, transparent 1px);
+            mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+        }
+
+        .hero-glow {
+            background: radial-gradient(ellipse 60% 40% at 50% 40%, rgba(234, 179, 8, 0.08) 0%, rgba(234, 179, 8, 0.03) 40%, transparent 70%);
+        }
+        .warm-glow {
+            background: radial-gradient(ellipse 50% 40% at 50% 50%, rgba(234, 179, 8, 0.06) 0%, transparent 70%);
+        }
+        .red-glow {
+            background: radial-gradient(ellipse 50% 40% at 50% 50%, rgba(239, 68, 68, 0.06) 0%, transparent 70%);
+        }
+
+        @keyframes reveal-up {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(1); opacity: 0.5; }
+            100% { transform: scale(1.8); opacity: 0; }
+        }
+        .animate-reveal { animation: reveal-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+        .animate-float { animation: float 6s ease-in-out infinite; }
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.2s; }
+        .delay-300 { animation-delay: 0.3s; }
+        .delay-400 { animation-delay: 0.4s; }
+        .delay-500 { animation-delay: 0.5s; }
+
+        .stat-card { position: relative; overflow: hidden; }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0;
+            width: 80px; height: 80px;
+            background: radial-gradient(circle, rgba(234, 179, 8, 0.08), transparent 70%);
+            border-radius: 0 0 0 100%;
+        }
+
+        .incident-card { position: relative; overflow: hidden; }
+        .incident-card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(to left, #EF4444, #B91C1C);
+        }
+
+        .btn-primary {
+            background: #EAB308;
+            color: #0C0806;
+            box-shadow: 0 0 20px -5px rgba(234, 179, 8, 0.3);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background: #FDE047;
+            box-shadow: 0 0 30px -5px rgba(234, 179, 8, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .scroll-indicator { animation: float 3s ease-in-out infinite; }
+
+        .nav-link { position: relative; }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -4px; right: 0; left: 0;
+            height: 1px;
+            background: #EAB308;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .nav-link:hover::after { opacity: 1; }
+
+        .financial-highlight {
+            background: linear-gradient(135deg, rgba(234, 179, 8, 0.04), rgba(234, 179, 8, 0.02));
+            border: 1px solid rgba(234, 179, 8, 0.15);
+        }
+
+        .team-card {
+            background: rgba(26, 19, 16, 0.9);
+            border: 1px solid rgba(234, 179, 8, 0.06);
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .team-card:hover {
+            border-color: rgba(234, 179, 8, 0.2);
+            transform: translateY(-8px);
+            box-shadow: 0 25px 50px -15px rgba(234, 179, 8, 0.1);
+        }
+        .team-card:hover .team-img {
+            transform: scale(1.05);
+            filter: grayscale(0%);
+        }
+        .team-card:hover .team-social {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .team-img {
+            filter: grayscale(30%);
+            transition: all 0.5s ease;
+        }
+        .team-social {
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.4s ease;
+        }
+
+        .team-ring {
+            background: conic-gradient(from 0deg, #EAB308, #A16207, #854D0E, #EAB308);
+            padding: 2px;
+            border-radius: 50%;
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0C0806; }
+        ::-webkit-scrollbar-thumb { background: rgba(234, 179, 8, 0.2); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(234, 179, 8, 0.4); }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="glass-nav fixed top-0 left-0 right-0 z-50 h-16">
+        <div class="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-lg bg-brand flex items-center justify-center">
+                        <span class="text-base font-bold font-inter" style="color:#0C0806;">e</span>
+                    </div>
+                    <span class="text-2xl font-bold text-brand font-inter tracking-tight" style="letter-spacing:-0.5px;">elii</span>
+                </div>
+                <span class="hidden md:block text-[10px] font-inter text-warm-400 tracking-wider uppercase">Early Logic Instant Insight</span>
+            </div>
+            <div class="hidden lg:flex items-center gap-8">
+                <a href="#problem" class="nav-link text-sm text-warm-300 hover:text-brand transition-colors">المشكلة</a>
+                <a href="#services" class="nav-link text-sm text-warm-300 hover:text-brand transition-colors">خدماتنا</a>
+                <a href="#rescue" class="nav-link text-sm text-warm-300 hover:text-brand transition-colors">جهاز الإنقاذ</a>
+                <a href="#driving" class="nav-link text-sm text-warm-300 hover:text-brand transition-colors">القيادة</a>
+                <a href="#team" class="nav-link text-sm text-warm-300 hover:text-brand transition-colors">الفريق</a>
+                <a href="#financials" class="nav-link text-sm text-warm-300 hover:text-brand transition-colors">الأرقام</a>
+            </div>
+            <div class="flex items-center gap-3">
+                <button class="btn-primary text-xs font-semibold px-4 py-2 rounded-lg">ابدأ الآن</button>
+                <button id="mobileMenuBtn" class="lg:hidden text-warm-300 hover:text-brand transition-colors">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div id="mobileMenu" class="fixed inset-0 z-40 hidden" style="background: rgba(12,8,6,0.97); backdrop-filter: blur(20px);">
+        <div class="pt-20 px-8 flex flex-col gap-6">
+            <a href="#problem" class="text-xl text-warm-200 hover:text-brand transition-colors mobile-link">المشكلة</a>
+            <a href="#services" class="text-xl text-warm-200 hover:text-brand transition-colors mobile-link">خدماتنا</a>
+            <a href="#rescue" class="text-xl text-warm-200 hover:text-brand transition-colors mobile-link">جهاز الإنقاذ</a>
+            <a href="#driving" class="text-xl text-warm-200 hover:text-brand transition-colors mobile-link">القيادة</a>
+            <a href="#team" class="text-xl text-warm-200 hover:text-brand transition-colors mobile-link">الفريق</a>
+            <a href="#financials" class="text-xl text-warm-200 hover:text-brand transition-colors mobile-link">الأرقام</a>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="relative min-h-screen flex flex-col items-center justify-center pt-32 pb-20 px-6 overflow-hidden">
+        <div class="hero-glow absolute inset-0 pointer-events-none"></div>
+        <div class="bg-grid absolute inset-0 pointer-events-none"></div>
+
+        <div class="relative z-10 max-w-5xl mx-auto text-center">
+            <div class="animate-reveal inline-flex items-center gap-2 px-4 py-2 rounded-full border border-brand/20 bg-brand/5 mb-8">
+                <span class="w-1.5 h-1.5 rounded-full bg-brand animate-pulse"></span>
+                <span class="text-[11px] font-medium text-brand font-inter tracking-wide">AI-POWERED AUTOMOTIVE ECOSYSTEM</span>
+            </div>
+
+            <h1 class="animate-reveal delay-100 text-4xl md:text-6xl lg:text-7xl font-bold leading-[1.1] tracking-tight mb-6">
+                <span class="text-warm-50">كل خدمات</span><br>
+                <span class="text-gradient">سيارتك في مكان واحد</span>
+            </h1>
+
+            <p class="animate-reveal delay-200 text-lg md:text-xl font-light text-warm-300 max-w-2xl mx-auto mb-4 leading-relaxed">
+                منصة ذكية تجمع ورش الصيانة وقطع الغيار واكتشاف الأعطال بالذكاء الاصطناعي وأنظمة الإنقاذ في تطبيق واحد
+            </p>
+
+            <p class="animate-reveal delay-300 text-sm text-warm-500 font-inter mb-10">
+                First FREE trial · No credit card required
+            </p>
+
+            <div class="animate-reveal delay-400 flex flex-col sm:flex-row items-center justify-center gap-4">
+                <button class="btn-primary text-sm font-bold px-8 py-3.5 rounded-xl flex items-center gap-2">
+                    <i data-lucide="download" class="w-4 h-4"></i>
+                    حمّل التطبيق مجاناً
+                </button>
+                <button class="text-sm font-medium text-warm-300 hover:text-warm-100 px-8 py-3.5 rounded-xl border border-warm-700 hover:border-brand/30 transition-all flex items-center gap-2">
+                    <i data-lucide="play-circle" class="w-4 h-4"></i>
+                    شاهد العرض
+                </button>
+            </div>
+
+            <div class="animate-reveal delay-500 mt-16 grid grid-cols-3 gap-6 max-w-lg mx-auto">
+                <div class="text-center">
+                    <div class="text-2xl md:text-3xl font-bold text-warm-100 font-inter">4</div>
+                    <div class="text-[11px] text-warm-500 mt-1">خدمات رئيسية</div>
+                </div>
+                <div class="text-center border-x border-warm-800 px-4">
+                    <div class="text-2xl md:text-3xl font-bold text-warm-100 font-inter">AI</div>
+                    <div class="text-[11px] text-warm-500 mt-1">ذكاء اصطناعي</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl md:text-3xl font-bold text-warm-100 font-inter">1</div>
+                    <div class="text-[11px] text-warm-500 mt-1">تطبيق شامل</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="absolute bottom-8 left-1/2 -translate-x-1/2 scroll-indicator">
+            <i data-lucide="chevrons-down" class="w-5 h-5 text-brand/30"></i>
+        </div>
+    </section>
+
+    <!-- Problem Section -->
+    <section id="problem" class="relative py-24 px-6">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+                <span class="text-[11px] font-inter font-medium text-red-400 tracking-widest uppercase">The Problem</span>
+                <h2 class="text-3xl md:text-5xl font-bold mt-3 tracking-tight">
+                    مشاكل <span class="text-gradient-red">حقيقية</span> يعاني منها الجميع
+                </h2>
+                <p class="text-warm-400 mt-4 max-w-xl mx-auto">قطع الغيار مش متوفرة، والوقت بيمضي والفلوس بتضيع بدون نتيجة</p>
+            </div>
+            <div class="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                <div class="glass-card rounded-2xl p-8" style="border-color: rgba(239,68,68,0.08);">
+                    <div class="w-12 h-12 rounded-xl bg-red-500/8 flex items-center justify-center mb-5">
+                        <i data-lucide="search-x" class="w-6 h-6 text-red-400/80"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold mb-3 text-warm-100">ندرة قطع الغيار</h3>
+                    <p class="text-warm-400 text-sm leading-relaxed">أغلب الورش والمحلات الصغيرة والمتوسطة عندها قطع غيار محدودة ومفيش داتا بانك موحدة توريك القطعة متوفرة فين بالظبط</p>
+                </div>
+                <div class="glass-card rounded-2xl p-8" style="border-color: rgba(239,68,68,0.08);">
+                    <div class="w-12 h-12 rounded-xl bg-red-500/8 flex items-center justify-center mb-5">
+                        <i data-lucide="clock" class="w-6 h-6 text-red-400/80"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold mb-3 text-warm-100">ضياع الوقت والجهد</h3>
+                    <p class="text-warm-400 text-sm leading-relaxed">بتمشي من ورشة لورشة وتسأل وتتصل وتنتظر، وكل ده بمجهود يدوي وبدون أي ضمان إنك هتلاقي اللي انت عايزه</p>
+                </div>
+                <div class="glass-card rounded-2xl p-8" style="border-color: rgba(239,68,68,0.08);">
+                    <div class="w-12 h-12 rounded-xl bg-red-500/8 flex items-center justify-center mb-5">
+                        <i data-lucide="wallet" class="w-6 h-6 text-red-400/80"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold mb-3 text-warm-100">خسائر مادية كبيرة</h3>
+                    <p class="text-warm-400 text-sm leading-relaxed">تنقلات، أجور وسطاء، أسعار مبالغ فيها لإنك مش شايف المنافسة، وإصلاحات خاطئة بتجيب عطل أكبر</p>
+                </div>
+                <div class="glass-card rounded-2xl p-8" style="border-color: rgba(239,68,68,0.08);">
+                    <div class="w-12 h-12 rounded-xl bg-red-500/8 flex items-center justify-center mb-5">
+                        <i data-lucide="alert-triangle" class="w-6 h-6 text-red-400/80"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold mb-3 text-warm-100">الأعطال المفاجئة</h3>
+                    <p class="text-warm-400 text-sm leading-relaxed">مفيش طريقة تتوقع إن عطل هيحصل قبل ما يحصل، وده بيخليك في مواقف خطرة على الطريق أو تتكلف أعطال أكبر</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Overview -->
+    <section id="services" class="relative py-24 px-6">
+        <div class="warm-glow absolute inset-0 pointer-events-none"></div>
+        <div class="max-w-7xl mx-auto relative z-10">
+            <div class="text-center mb-16">
+                <span class="text-[11px] font-inter font-medium text-brand tracking-widest uppercase">Our Solutions</span>
+                <h2 class="text-3xl md:text-5xl font-bold mt-3 tracking-tight">
+                    <span class="text-gradient">4 خدمات</span> في تطبيق واحد
+                </h2>
+            </div>
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="glass-card rounded-2xl p-6 text-center group cursor-pointer">
+                    <div class="w-14 h-14 rounded-2xl bg-brand/8 flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform">
+                        <i data-lucide="map-pin" class="w-7 h-7 text-brand"></i>
+                    </div>
+                    <h3 class="text-base font-semibold mb-2 text-warm-100">باحث قطع الغيار</h3>
+                    <p class="text-warm-500 text-xs leading-relaxed">ابحث عن أي قطعة غيار على الخريطة بأقرب ورشة لك</p>
+                    <div class="mt-4 text-[10px] font-inter text-brand/40 tracking-wider">SERVICE 01</div>
+                </div>
+                <div class="glass-card rounded-2xl p-6 text-center group cursor-pointer">
+                    <div class="w-14 h-14 rounded-2xl bg-brand/8 flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform">
+                        <i data-lucide="brain" class="w-7 h-7 text-brand"></i>
+                    </div>
+                    <h3 class="text-base font-semibold mb-2 text-warm-100">اكتشاف الأعطال</h3>
+                    <p class="text-warm-500 text-xs leading-relaxed">ذكاء اصطناعي يتنبأ بالأعطال قبل ما تحصل</p>
+                    <div class="mt-4 text-[10px] font-inter text-brand/40 tracking-wider">SERVICE 02</div>
+                </div>
+                <div class="glass-card rounded-2xl p-6 text-center group cursor-pointer">
+                    <div class="w-14 h-14 rounded-2xl bg-red-500/8 flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform">
+                        <i data-lucide="shield-alert" class="w-7 h-7 text-red-400/80"></i>
+                    </div>
+                    <h3 class="text-base font-semibold mb-2 text-warm-100">جهاز الإنقاذ</h3>
+                    <p class="text-warm-500 text-xs leading-relaxed">كاشف غاز أول أكسيد الكربون ينقذ حياتك</p>
+                    <div class="mt-4 text-[10px] font-inter text-red-400/40 tracking-wider">SERVICE 03</div>
+                </div>
+                <div class="glass-card rounded-2xl p-6 text-center group cursor-pointer">
+                    <div class="w-14 h-14 rounded-2xl bg-brand/8 flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform">
+                        <i data-lucide="graduation-cap" class="w-7 h-7 text-brand-dark"></i>
+                    </div>
+                    <h3 class="text-base font-semibold mb-2 text-warm-100">تعليم القيادة</h3>
+                    <p class="text-warm-500 text-xs leading-relaxed">شراكة مع هيئة رسمية للحجز والتحضير</p>
+                    <div class="mt-4 text-[10px] font-inter text-brand/40 tracking-wider">SERVICE 04</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Service 1: Parts Finder -->
+    <section class="relative py-24 px-6">
+        <div class="hero-glow absolute inset-0 pointer-events-none"></div>
+        <div class="max-w-7xl mx-auto relative z-10">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <div>
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-brand/15 bg-brand/5 mb-6">
+                        <i data-lucide="map-pin" class="w-3.5 h-3.5 text-brand"></i>
+                        <span class="text-[10px] font-inter text-brand tracking-wider uppercase">SERVICE 01 — PARTS FINDER</span>
+                    </div>
+                    <h2 class="text-3xl md:text-4xl font-bold tracking-tight mb-6">
+                        لقيت القطعة؟ <span class="text-gradient">دوس عليها</span>
+                    </h2>
+                    <p class="text-warm-300 leading-relaxed mb-8">
+                        تطبيق شبيه بجوجل مابس لكن متخصص في قطع الغيار والصيانة. بدل ما تمشي وتدور وتخسر وقت وفلوس، تفتح التطبيق وتبحث عن القطعة بالاسم أو الصورة، ويلقاك أقرب ورشة أو محل عندها القطعة متوفرة على الخريطة بالسعر والمواصفات.
+                    </p>
+                    <div class="space-y-4 mb-8">
+                        <div class="flex items-start gap-3">
+                            <div class="w-6 h-6 rounded-full bg-brand/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <i data-lucide="check" class="w-3.5 h-3.5 text-brand"></i>
+                            </div>
+                            <div>
+                                <span class="text-sm font-medium text-warm-100">تسجيل الورش والمحلات</span>
+                                <p class="text-xs text-warm-500 mt-1">كل ورشة ترفع صور وبيانات لكل القطع المتاحة عندها بسعرها وحالتها</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="w-6 h-6 rounded-full bg-brand/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <i data-lucide="check" class="w-3.5 h-3.5 text-brand"></i>
+                            </div>
+                            <div>
+                                <span class="text-sm font-medium text-warm-100">شراكة مع مراكز الصيانة المعتمدة</span>
+                                <p class="text-xs text-warm-500 mt-1">مراكز صيانة مشهورة تعلن عن منتجاتها وخدماتها على المنصة</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="w-6 h-6 rounded-full bg-brand/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <i data-lucide="check" class="w-3.5 h-3.5 text-brand"></i>
+                            </div>
+                            <div>
+                                <span class="text-sm font-medium text-warm-100">بحث ذكي بالصورة والنص</span>
+                                <p class="text-xs text-warm-500 mt-1">صوّر القطعة وابحث، أو اكتب اسمها، والذكاء الاصطناعي يطلعلك النتائج</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Mock App UI -->
+                <div class="relative">
+                    <div class="rounded-2xl border border-warm-800 bg-base-card p-4 shadow-2xl">
+                        <div class="rounded-xl overflow-hidden border border-warm-800">
+                            <div class="bg-base-elevated p-4 flex items-center gap-3 border-b border-warm-800">
+                                <i data-lucide="search" class="w-4 h-4 text-warm-500"></i>
+                                <span class="text-sm text-warm-500">ابحث عن قطعة غيار...</span>
+                                <i data-lucide="camera" class="w-4 h-4 text-brand mr-auto"></i>
+                            </div>
+                            <div class="relative h-64 bg-base overflow-hidden">
+                                <img src="https://picsum.photos/seed/darkmap-brown/800/400.jpg" alt="Map" class="w-full h-full object-cover opacity-25">
+                                <div class="absolute top-12 right-16 animate-float">
+                                    <div class="relative">
+                                        <div class="w-8 h-8 rounded-full bg-brand flex items-center justify-center shadow-lg shadow-brand/20">
+                                            <i data-lucide="wrench" class="w-4 h-4" style="color:#0C0806;"></i>
+                                        </div>
+                                        <div class="absolute -bottom-1 -right-1 w-3 h-3 rounded-full bg-green-400 border-2 border-base"></div>
+                                    </div>
+                                </div>
+                                <div class="absolute top-20 left-24 animate-float" style="animation-delay:1s;">
+                                    <div class="relative">
+                                        <div class="w-8 h-8 rounded-full bg-brand flex items-center justify-center shadow-lg shadow-brand/20">
+                                            <i data-lucide="wrench" class="w-4 h-4" style="color:#0C0806;"></i>
+                                        </div>
+                                        <div class="absolute -bottom-1 -right-1 w-3 h-3 rounded-full bg-green-400 border-2 border-base"></div>
+                                    </div>
+                                </div>
+                                <div class="absolute bottom-16 right-32 animate-float" style="animation-delay:2s;">
+                                    <div class="relative">
+                                        <div class="w-8 h-8 rounded-full bg-brand-dark flex items-center justify-center shadow-lg shadow-brand-dark/20">
+                                            <i data-lucide="building" class="w-4 h-4 text-warm-100"></i>
+                                        </div>
+                                        <div class="absolute -bottom-1 -right-1 w-3 h-3 rounded-full bg-green-400 border-2 border-base"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-base-elevated p-3 space-y-2">
+                                <div class="flex items-center gap-3 p-2 rounded-lg bg-base/50">
+                                    <div class="w-10 h-10 rounded-lg bg-brand/8 flex items-center justify-center">
+                                        <i data-lucide="cog" class="w-5 h-5 text-brand"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="text-xs font-medium text-warm-200">ورشة الأمان للسيارات</div>
+                                        <div class="text-[10px] text-warm-500">بلاي ستيشن هونداي 2019 — 450 جنيه</div>
+                                    </div>
+                                    <span class="text-[9px] text-green-400 bg-green-400/8 px-2 py-0.5 rounded-full">متاح</span>
+                                </div>
+                                <div class="flex items-center gap-3 p-2 rounded-lg bg-base/50">
+                                    <div class="w-10 h-10 rounded-lg bg-brand-dark/10 flex items-center justify-center">
+                                        <i data-lucide="cog" class="w-5 h-5 text-brand-dark"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="text-xs font-medium text-warm-200">مركز النيل للصيانة</div>
+                                        <div class="text-[10px] text-warm-500">فلاتر زيت أصلية — 180 جنيه</div>
+                                    </div>
+                                    <span class="text-[9px] text-brand bg-brand/8 px-2 py-0.5 rounded-full">آخر قطعة</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="absolute -top-3 -left-3 px-3 py-1.5 rounded-lg bg-brand text-[10px] font-bold font-inter shadow-lg shadow-brand/20" style="color:#0C0806;">LIVE SEARCH</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Service 2: ML -->
+    <section class="relative py-24 px-6">
+        <div class="warm-glow absolute inset-0 pointer-events-none"></div>
+        <div class="bg-grid absolute inset-0 pointer-events-none"></div>
+        <div class="max-w-7xl mx-auto relative z-10">
+            <div class="text-center mb-16">
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-brand/15 bg-brand/5 mb-6">
+                    <i data-lucide="brain" class="w-3.5 h-3.5 text-brand"></i>
+                    <span class="text-[10px] font-inter text-brand tracking-wider uppercase">SERVICE 02 — MACHINE LEARNING</span>
+                </div>
+                <h2 class="text-3xl md:text-5xl font-bold tracking-tight mb-4">
+                    اكتشف العطل <span class="text-gradient">قبل ما يحصل</span>
+                </h2>
+                <p class="text-warm-400 max-w-2xl mx-auto leading-relaxed">
+                    خدمة مدمجة بـ Machine Learning تعتمد على تحليل بيانات السيارة في الوقت الفعلي للتنبؤ بالأعطال قبل حدوثها بأسابيع
+                </p>
+            </div>
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+                <div class="glass-card rounded-2xl p-6 relative">
+                    <div class="text-4xl font-bold text-brand/8 font-inter absolute top-4 left-4">01</div>
+                    <div class="w-10 h-10 rounded-xl bg-brand/8 flex items-center justify-center mb-4">
+                        <i data-lucide="radio" class="w-5 h-5 text-brand"></i>
+                    </div>
+                    <h4 class="text-sm font-semibold mb-2 text-warm-100">جمع البيانات</h4>
+                    <p class="text-xs text-warm-500 leading-relaxed">أجهزة استشعار IoT متصلة بمنفذ OBD-II تجمع بيانات حية من أكثر من <span class="text-brand">50 نقطة مراقبة</span>: اهتزازات، حرارة، ضغط، سرعة دوران، حالة البطارية</p>
+                </div>
+                <div class="glass-card rounded-2xl p-6 relative">
+                    <div class="text-4xl font-bold text-brand/8 font-inter absolute top-4 left-4">02</div>
+                    <div class="w-10 h-10 rounded-xl bg-brand/8 flex items-center justify-center mb-4">
+                        <i data-lucide="cpu" class="w-5 h-5 text-brand"></i>
+                    </div>
+                    <h4 class="text-sm font-semibold mb-2 text-warm-100">التحليل بالذكاء الاصطناعي</h4>
+                    <p class="text-xs text-warm-500 leading-relaxed">نماذج تعلم آلي مدربة على ملايين نقاط البيانات تحلل الأنماط السلوكية لكل مكون وتكتشف الانحرافات الدقيقة</p>
+                </div>
+                <div class="glass-card rounded-2xl p-6 relative">
+                    <div class="text-4xl font-bold text-brand/8 font-inter absolute top-4 left-4">03</div>
+                    <div class="w-10 h-10 rounded-xl bg-brand/8 flex items-center justify-center mb-4">
+                        <i data-lucide="bell-ring" class="w-5 h-5 text-brand"></i>
+                    </div>
+                    <h4 class="text-sm font-semibold mb-2 text-warm-100">تنبيهات ذكية</h4>
+                    <p class="text-xs text-warm-500 leading-relaxed">تنبيه قبل <span class="text-brand">2-4 أسابيع</span> من العطل المتوقع مع تقدير تكلفة الإصلاح المبكر وتوجيه لأقرب ورشة شريكة</p>
+                </div>
+                <div class="glass-card rounded-2xl p-6 relative">
+                    <div class="text-4xl font-bold text-brand/8 font-inter absolute top-4 left-4">04</div>
+                    <div class="w-10 h-10 rounded-xl bg-brand/8 flex items-center justify-center mb-4">
+                        <i data-lucide="shield-check" class="w-5 h-5 text-brand-dark"></i>
+                    </div>
+                    <h4 class="text-sm font-semibold mb-2 text-warm-100">تقرير صحي يومي</h4>
+                    <p class="text-xs text-warm-500 leading-relaxed">Health Score لكل مكون بنسبة مئوية، مع تتبع تدهور الأداء عبر الزمن واقتراح مواعيد الصيانة المثلى</p>
+                </div>
+            </div>
+
+            <!-- ML Technologies -->
+            <div class="glass-card rounded-2xl p-8 max-w-5xl mx-auto">
+                <h3 class="text-lg font-semibold mb-6 flex items-center gap-2 text-warm-100">
+                    <i data-lucide="code-2" class="w-5 h-5 text-brand"></i>
+                    التقنيات المستخدمة في Machine Learning
+                </h3>
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div class="flex items-start gap-3 p-3 rounded-xl bg-base/50">
+                        <div class="w-2 h-2 rounded-full bg-brand mt-1.5 flex-shrink-0"></div>
+                        <div>
+                            <span class="text-sm font-medium font-inter text-warm-200">Anomaly Detection</span>
+                            <p class="text-xs text-warm-500 mt-1">خوارزميات Isolation Forest و Autoencoders لاكتشاف السلوكيات غير الطبيعية</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3 p-3 rounded-xl bg-base/50">
+                        <div class="w-2 h-2 rounded-full bg-brand mt-1.5 flex-shrink-0"></div>
+                        <div>
+                            <span class="text-sm font-medium font-inter text-warm-200">Time Series Analysis</span>
+                            <p class="text-xs text-warm-500 mt-1">تحليل السلاسل الزمنية بـ LSTM Networks لفهم اتجاهات تدهور الأجزاء</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3 p-3 rounded-xl bg-base/50">
+                        <div class="w-2 h-2 rounded-full bg-brand mt-1.5 flex-shrink-0"></div>
+                        <div>
+                            <span class="text-sm font-medium font-inter text-warm-200">Remaining Useful Life (RUL)</span>
+                            <p class="text-xs text-warm-500 mt-1">Deep Neural Networks للتنبؤ بعمر الأجزاء المتبقي بدقة تصل إلى 92%</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3 p-3 rounded-xl bg-base/50">
+                        <div class="w-2 h-2 rounded-full bg-brand mt-1.5 flex-shrink-0"></div>
+                        <div>
+                            <span class="text-sm font-medium font-inter text-warm-200">Random Forest Classifier</span>
+                            <p class="text-xs text-warm-500 mt-1">تصنيف أنواع الأعطال المحتملة وتحديد المكون المصاب بدقة</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-4 mt-8 pt-6 border-t border-warm-800">
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-gradient font-inter">60%</div>
+                        <div class="text-[10px] text-warm-500 mt-1">تقليل تكاليف الصيانة</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-gradient font-inter">92%</div>
+                        <div class="text-[10px] text-warm-500 mt-1">دقة التنبؤ بالأعطال</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-gradient font-inter">2-4</div>
+                        <div class="text-[10px] text-warm-500 mt-1">أسابيع إنذار مبكر</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Service 3: Rescue Device -->
+    <section id="rescue" class="relative py-24 px-6">
+        <div class="red-glow absolute inset-0 pointer-events-none"></div>
+        <div class="max-w-7xl mx-auto relative z-10">
+            <div class="text-center mb-16">
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-red-500/15 bg-red-500/5 mb-6">
+                    <i data-lucide="shield-alert" class="w-3.5 h-3.5 text-red-400"></i>
+                    <span class="text-[10px] font-inter text-red-400 tracking-wider uppercase">SERVICE 03 — RESCUE DEVICE</span>
+                </div>
+                <h2 class="text-3xl md:text-5xl font-bold tracking-tight mb-4">
+                    جهاز إنقاذ <span class="text-gradient-red">يحمي حياتك</span>
+                </h2>
+                <p class="text-warm-400 max-w-2xl mx-auto leading-relaxed">
+                    جهاز ذكي يكشف غاز أول أكسيد الكربون (CO) — أول ما يلقط أي خطر، يعمل إنذار ويقفل المصدر ويفتح الشبابيك ويرسل رسالة طوارئ
+                </p>
+            </div>
+            <div class="grid lg:grid-cols-3 gap-6 mb-16">
+                <div class="glass-card rounded-2xl p-6 text-center">
+                    <div class="w-14 h-14 rounded-2xl bg-red-500/8 flex items-center justify-center mx-auto mb-4 relative">
+                        <i data-lucide="eye" class="w-7 h-7 text-red-400/80"></i>
+                        <div class="absolute inset-0 rounded-2xl border border-red-500/15" style="animation: pulse-ring 2s ease-out infinite;"></div>
+                    </div>
+                    <h4 class="text-sm font-semibold mb-2 text-warm-100">كشف فوري</h4>
+                    <p class="text-xs text-warm-500 leading-relaxed">يلتقط أي تركيز لغاز CO أعلى من الحد الآمن في أقل من 30 ثانية</p>
+                </div>
+                <div class="glass-card rounded-2xl p-6 text-center">
+                    <div class="w-14 h-14 rounded-2xl bg-red-500/8 flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="volume-2" class="w-7 h-7 text-red-400/80"></i>
+                    </div>
+                    <h4 class="text-sm font-semibold mb-2 text-warm-100">إنذار + إجراء فوري</h4>
+                    <p class="text-xs text-warm-500 leading-relaxed">إنذار عالي، يقفل التكييف فوراً، ويفتح الشبابيك تلقائياً</p>
+                </div>
+                <div class="glass-card rounded-2xl p-6 text-center">
+                    <div class="w-14 h-14 rounded-2xl bg-red-500/8 flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="siren" class="w-7 h-7 text-red-400/80"></i>
+                    </div>
+                    <h4 class="text-sm font-semibold mb-2 text-warm-100">رسالة طوارئ</h4>
+                    <p class="text-xs text-warm-500 leading-relaxed">يرسل إحداثيات الموقع لأقرب مستشفى ورقم الطوارئ مع بيانات الحالة</p>
+                </div>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-8">
+                <div class="rounded-2xl border border-warm-800 bg-base-card overflow-hidden">
+                    <div class="relative h-48 overflow-hidden">
+                        <img src="https://picsum.photos/seed/car-night-parked/800/400.jpg" alt="سيارة بالليل" class="w-full h-full object-cover opacity-30">
+                        <div class="absolute inset-0 bg-gradient-to-t from-base-card to-transparent"></div>
+                        <div class="absolute bottom-4 right-4 px-3 py-1 rounded-lg bg-red-500/15 border border-red-500/20 text-[10px] font-inter text-red-300/80 tracking-wider">CAR A/C SCENARIO</div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-lg font-semibold mb-3 flex items-center gap-2 text-warm-100">
+                            <i data-lucide="car" class="w-5 h-5 text-red-400/80"></i>
+                            حماية من غاز التكييف في العربية
+                        </h3>
+                        <p class="text-sm text-warm-400 leading-relaxed mb-4">لما بتكون راكب في العربية والتكييف شغال في مكان مغلق، غاز CO ممكن يتسرب بدون ما تحس — لونه ولا رائحة.</p>
+                        <div class="space-y-3">
+                            <div class="incident-card rounded-xl p-4 bg-base/50">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                                    <span class="text-xs font-semibold text-red-300/80">حادثة حقيقية — السعودية 2023</span>
+                                </div>
+                                <p class="text-xs text-warm-500 leading-relaxed">عائلة 5 أفراد لقوا مصرعهم بعدما ناموا في العربية والتكييف شغال في جراج مغلق. غاز CO تراكم بدون ما حد يحس.</p>
+                            </div>
+                            <div class="incident-card rounded-xl p-4 bg-base/50">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                                    <span class="text-xs font-semibold text-red-300/80">حادثة حقيقية — مصر 2022</span>
+                                </div>
+                                <p class="text-xs text-warm-500 leading-relaxed">شابين وجدا فاقدين الوعي داخل سيارتهم بعد انتظار بالتكييف شغال. تلف في الجهاز التنفسي.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="rounded-2xl border border-warm-800 bg-base-card overflow-hidden">
+                    <div class="relative h-48 overflow-hidden">
+                        <img src="https://picsum.photos/seed/bathroom-warm/800/400.jpg" alt="حمام" class="w-full h-full object-cover opacity-30">
+                        <div class="absolute inset-0 bg-gradient-to-t from-base-card to-transparent"></div>
+                        <div class="absolute bottom-4 right-4 px-3 py-1 rounded-lg bg-brand-dark/15 border border-brand-dark/20 text-[10px] font-inter text-brand-dark tracking-wider" style="-webkit-text-fill-color:#FDE047;">HOME HEATER SCENARIO</div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-lg font-semibold mb-3 flex items-center gap-2 text-warm-100">
+                            <i data-lucide="home" class="w-5 h-5 text-brand-dark"></i>
+                            حمامات البيوت بالسخانات الكهربائية
+                        </h3>
+                        <p class="text-sm text-warm-400 leading-relaxed mb-4">السخانات في الحمامات المغلقة ممكن تنتج CO في حالة عطل داخلي. الحمامات ضيقة وتهويتها ضعيفة.</p>
+                        <div class="space-y-3">
+                            <div class="incident-card rounded-xl p-4 bg-base/50">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="w-2 h-2 rounded-full bg-brand-dark animate-pulse"></span>
+                                    <span class="text-xs font-semibold text-brand-dark">حالات متكررة — حمامات الشقق</span>
+                                </div>
+                                <p class="text-xs text-warm-500 leading-relaxed">أشخاص اتسمموا بصمت داخل الحمام بسبب تسرب CO من السخان. الأعراض بتشبه الدوخة والإرهاق.</p>
+                            </div>
+                            <div class="incident-card rounded-xl p-4 bg-base/50">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="w-2 h-2 rounded-full bg-brand-dark animate-pulse"></span>
+                                    <span class="text-xs font-semibold text-brand-dark">إحصائية WHO</span>
+                                </div>
+                                <p class="text-xs text-warm-500 leading-relaxed">أكثر من 400 شخص بيتوفوا سنوياً بسبب التسمم بغاز CO غير المتعمد. معظم الحالات كانت قابلة للمنع.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Service 4: Driving -->
+    <section id="driving" class="relative py-24 px-6">
+        <div class="warm-glow absolute inset-0 pointer-events-none"></div>
+        <div class="bg-grid absolute inset-0 pointer-events-none"></div>
+        <div class="max-w-7xl mx-auto relative z-10">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <div>
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-brand/15 bg-brand/5 mb-6">
+                        <i data-lucide="graduation-cap" class="w-3.5 h-3.5 text-brand"></i>
+                        <span class="text-[10px] font-inter text-brand tracking-wider uppercase">SERVICE 04 — DRIVING EDUCATION</span>
+                    </div>
+                    <h2 class="text-3xl md:text-4xl font-bold tracking-tight mb-6">
+                        شراكة استراتيجية مع <span class="text-gradient">هيئة تعليم القيادة</span>
+                    </h2>
+                    <p class="text-warm-300 leading-relaxed mb-8">شراكة رسمية مع الهيئة المعنية لتقديم تجربة متكاملة من الحجز للترخيص، مدعومة بالذكاء الاصطناعي</p>
+                    <div class="space-y-5">
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 rounded-xl bg-brand/8 flex items-center justify-center flex-shrink-0"><i data-lucide="calendar-check" class="w-5 h-5 text-brand"></i></div>
+                            <div><h4 class="text-sm font-semibold mb-1 text-warm-100">منصة حجز إلكترونية موحدة</h4><p class="text-xs text-warm-500">جداول المواعيد، اختيار المدرب والموقع الأقرب، والدفع الإلكتروني الآمن</p></div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 rounded-xl bg-brand/8 flex items-center justify-center flex-shrink-0"><i data-lucide="brain" class="w-5 h-5 text-brand"></i></div>
+                            <div><h4 class="text-sm font-semibold mb-1 text-warm-100">محاكاة اختبار نظرية ذكية</h4><p class="text-xs text-warm-500">بنك أسئلة تفاعلي يحلل نقاط الضعف ويقدم منهج تعليمي مخصص لكل شخص</p></div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 rounded-xl bg-brand/8 flex items-center justify-center flex-shrink-0"><i data-lucide="bar-chart-3" class="w-5 h-5 text-brand"></i></div>
+                            <div><h4 class="text-sm font-semibold mb-1 text-warm-100">تتبع تقدم المتدرب</h4><p class="text-xs text-warm-500">ساعات التدريب، المستوى، تقييمات المدرب، وتنبيهات بمواعيد الاختبارات</p></div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 rounded-xl bg-brand/8 flex items-center justify-center flex-shrink-0"><i data-lucide="gift" class="w-5 h-5 text-brand"></i></div>
+                            <div><h4 class="text-sm font-semibold mb-1 text-warm-100">برنامج "سائق جديد" — Funnel ذكي</h4><p class="text-xs text-warm-500">بعد الرخصة: خصم على أول صيانة + جهاز إنقاذ بسعر مخفض + 3 أشهر مجاناً في التنبؤ بالأعطال</p></div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 rounded-xl bg-brand/8 flex items-center justify-center flex-shrink-0"><i data-lucide="file-badge" class="w-5 h-5 text-brand"></i></div>
+                            <div><h4 class="text-sm font-semibold mb-1 text-warm-100">ربط بخدمات الترخيص والتجديد</h4><p class="text-xs text-warm-500">تنبيهات تجديد الرخصة، إجراءات الفحص الفني، وحجز مواعيد المرور</p></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="relative">
+                    <div class="rounded-2xl border border-warm-800 bg-base-card p-4 shadow-2xl">
+                        <div class="rounded-xl overflow-hidden border border-warm-800 bg-base-elevated">
+                            <div class="p-4 border-b border-warm-800 flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-brand/8 flex items-center justify-center"><i data-lucide="graduation-cap" class="w-4 h-4 text-brand"></i></div>
+                                <div><div class="text-xs font-medium text-warm-200">تقدم أحمد في التدريب</div><div class="text-[10px] text-warm-500">مدرسة النيل — مدرب: محمد علي</div></div>
+                            </div>
+                            <div class="p-4 space-y-4">
+                                <div><div class="flex justify-between text-[10px] mb-1.5"><span class="text-warm-400">ساعات التدريب العملية</span><span class="text-brand">18/20 ساعة</span></div><div class="w-full h-2 rounded-full bg-base"><div class="h-full rounded-full bg-gradient-to-l from-brand to-brand-dark" style="width:90%"></div></div></div>
+                                <div><div class="flex justify-between text-[10px] mb-1.5"><span class="text-warm-400">الاختبار النظري</span><span class="text-brand">85%</span></div><div class="w-full h-2 rounded-full bg-base"><div class="h-full rounded-full bg-gradient-to-l from-brand-light to-brand" style="width:85%"></div></div></div>
+                                <div><div class="flex justify-between text-[10px] mb-1.5"><span class="text-warm-400">الليالي</span><span class="text-brand-dark">3/5 ساعات</span></div><div class="w-full h-2 rounded-full bg-base"><div class="h-full rounded-full bg-gradient-to-l from-brand-dark to-warm-600" style="width:60%"></div></div></div>
+                                <div class="rounded-lg bg-brand/5 border border-brand/10 p-3 flex items-center gap-3"><div class="w-10 h-10 rounded-lg bg-brand/8 flex items-center justify-center"><i data-lucide="clock" class="w-5 h-5 text-brand"></i></div><div><div class="text-[10px] text-brand font-medium">الجلسة القادمة</div><div class="text-xs text-warm-200">السبت 10:00 ص — قيادة ليلاً</div></div></div>
+                                <div class="rounded-lg bg-brand/5 border border-brand/10 p-3 flex items-start gap-3"><div class="w-6 h-6 rounded-md bg-brand/8 flex items-center justify-center flex-shrink-0 mt-0.5"><i data-lucide="sparkles" class="w-3.5 h-3.5 text-brand"></i></div><div><div class="text-[10px] text-brand font-medium">تحليل الذكاء الاصطناعي</div><div class="text-[11px] text-warm-400">أداؤك ممتاز في الرجوع للخلف. نحتاج تركيز على التقاطعات والدوارات.</div></div></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="absolute -top-3 -right-3 px-3 py-1.5 rounded-lg bg-brand text-[10px] font-bold font-inter shadow-lg shadow-brand/20" style="color:#0C0806;">AI TRACKING</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- TEAM SECTION -->
+    <!-- ============================================ -->
+    <section id="team" class="relative py-28 px-6">
+        <div class="warm-glow absolute inset-0 pointer-events-none"></div>
+        <div class="bg-grid absolute inset-0 pointer-events-none"></div>
+        <div class="max-w-7xl mx-auto relative z-10">
+            <div class="text-center mb-20">
+                <span class="text-[11px] font-inter font-medium text-brand tracking-widest uppercase">Our Team</span>
+                <h2 class="text-3xl md:text-5xl font-bold mt-3 tracking-tight mb-4">
+                    الفريق اللي <span class="text-gradient">بيصنع الفرق</span>
+                </h2>
+                <p class="text-warm-400 max-w-xl mx-auto">شباب مندمجين من مختلف التخصصات — هندسة، ذكاء اصطناعي، تجارة إلكترونية — عشان نبنيلك نظام بيئي متكامل</p>
+            </div>
+
+            <!-- Founder - Large Card -->
+            <div class="max-w-2xl mx-auto mb-16">
+                <div class="team-card rounded-2xl p-8 text-center">
+                    <div class="flex justify-center mb-6">
+                        <div class="team-ring">
+                            <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-base-card">
+                                <img src="https://picsum.photos/seed/founder-ceo-man/400/400.jpg" alt="المؤسس والرئيس التنفيذي" class="w-full h-full object-cover team-img">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand/8 border border-brand/15 mb-4">
+                        <i data-lucide="crown" class="w-3 h-3 text-brand"></i>
+                        <span class="text-[10px] font-inter text-brand tracking-wider uppercase">FOUNDER & CEO</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-warm-100 mb-1">أYusef Ebrahim </h3>
+                    <p class="text-sm text-brand-dark mb-4 font-inter">Founder & Chief Executive Officer</p>
+                    <p class="text-xs text-warm-400 leading-relaxed max-w-md mx-auto mb-6">صاحب فكرة elii ومسؤول عن الرؤية الاستراتيجية والتوجيه العام. يجمع بين الخبرة في قطع الغيار والشغف بالتكنولوجيا لبناء حل حقيقي لمشكلة يعاني منها كل مالك سيارة في مصر.</p>
+                    <div class="team-social flex items-center justify-center gap-3">
+                        <a href="#" class="w-9 h-9 rounded-lg bg-warm-800/50 flex items-center justify-center text-warm-400 hover:text-brand hover:bg-brand/10 transition-all">
+                            <i data-lucide="linkedin" class="w-4 h-4"></i>
+                        </a>
+                        <a href="#" class="w-9 h-9 rounded-lg bg-warm-800/50 flex items-center justify-center text-warm-400 hover:text-brand hover:bg-brand/10 transition-all">
+                            <i data-lucide="twitter" class="w-4 h-4"></i>
+                        </a>
+                        <a href="#" class="w-9 h-9 rounded-lg bg-warm-800/50 flex items-center justify-center text-warm-400 hover:text-brand hover:bg-brand/10 transition-all">
+                            <i data-lucide="instagram" class="w-4 h-4"></i>
+                        </a>
+                        <a href="#" class="w-9 h-9 rounded-lg bg-warm-800/50 flex items-center justify-center text-warm-400 hover:text-brand hover:bg-brand/10 transition-all">
+                            <i data-lucide="mail" class="w-4 h-4"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Team Members Grid -->
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Member 1 -->
+                <div class="team-card rounded-2xl p-6 text-center">
+                    <div class="flex justify-center mb-5">
+                        <div class="team-ring">
+                            <div class="w-24 h-24 rounded-full overflow-hidden border-4 border-base-card">
+                                <img src="https://picsum.photos/seed/cto-tech-woman/400/400.jpg" alt="CTO" class="w-full h-full object-cover team-img">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-brand/8 border border-brand/10 mb-3">
+                        <span class="text-[9px] font-inter text-brand tracking-wider uppercase">CTO</span>
+                    </div>
+                    <h4 class="text-base font-semibold text-warm-100 mb-0.5">Mohammed tarwet</h4>
+                    <p class="text-xs text-brand-dark mb-3 font-inter">Chief Technology Officer</p>
+                    <p class="text-[11px] text-warm-500 leading-relaxed mb-4">مهندسة برمجيات متخصصة في تطوير التطبيقات والأنظمة السحابية. مسؤولة عن البنية التقنية لتطبيق elii</p>
+                    <div class="team-social flex items-center justify-center gap-2">
+                        <a href="#" class="w-8 h-8 rounded-lg bg-warm-800/50 flex items-center justify-center text-warm-500 hover:text-brand hover:bg-brand/10 transition-all"><i data-lucide="linkedin" class="w-3.5 h-3.5"></i></a>
+                        <a href="#" class="w-8 h-8 rounded-lg bg-warm-800/50 flex items-center justify-center text-warm-500 hover:text-brand hover:bg-brand/10 transition-all"><i data-lucide="github" class="w-3.5 h-3.5"></i></a>
+                        <a href="#" class="w-8 h-8 rounded-lg bg-warm-800/50 flex items-center justify-center text-warm-500 hover:text-brand hover:bg-brand/10 transition-all"><i data-lucide="mail" class="w-3.5 h-3.5"></i></a>
+                    </div>
+                </div>
+
+                <!-- Member 2 -->
+                <div class="team-card rounded-2xl p-6 text-center">
+                    <div class="flex justify-center mb-5">
+                        <div class="team-ring">
+                            <div class="w-24 h-24 rounded-full overflow-hidden border-4 border-base-card">
+                                <img src="https://picsum.photos/seed/ml-engineer-guy/400/400.jpg" alt="AI Lead" class="w-full h-full object-cover team-img">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-brand/8 border border-brand/10 mb-3">
+                        <span class="text-[9px] font-inter text-brand tracking-wider uppercase">AI LEAD</span>
+                    </div>
+                    <h4 class="text-base font-semibold text-warm-100 mb-0.5">مMuhammad.F Hendawy </h4>
+                    <p class="text-xs text-brand-dark mb-3 font-inter">AI & Machine Learning Lead</p>
+                    <p class="text-[11px] text-warm-500 leading-relaxed mb-4">متخصص في تعلم الآلة وتحليل البيانات. مصمم نماذج التنبؤ بالأعطال ومحرك البحث الذكي في التطبيق</p>
+                    <div class="team-social flex items-center justify-center gap-2">
+                        <a href="#" class="w-8 h-8 rounded-lg bg-warm-800/50 flex items-center justify-center text-warm-500 hover:text-brand hover:bg-brand/10 transition-all"><i data-lucide="linkedin" class="w-3.5 h-3.5"></i></a>
+                        <a href="#" class="w-8 h-8 rounded-lg bg-warm-800/50 flex items-center justify-center text-warm-500 hover:text-brand hover:bg-brand/10 transition-all"><i data-lucide="github" class="w-3.5 h-3.5"></i></a>
+                        <a href="#" class="w-8 h-8 rounded-lg bg-warm-800/50 flex items-center justify-center text-warm-500 hover:text-brand hover:bg-brand/10 transition-all"><i data-lucide="mail" class="w-3.5 h-3.5"></i></a>
+                    </div>
+                </div>
+
+                <!-- Member 3 -->
+                <div class="team-card rounded-2xl p-6 text-center">
+                    <div class="flex justify-center mb-5">
+                        <div class="team-ring">
+                            <div class="w-24 h-24 rounded-full overflow-hidden border-4 border-base-card">
+                                <img src="https://picsum.photos/seed/hardware-eng-man/400/400.jpg" alt="Hardware" class="w-full h-full object-cover team-img">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-brand/8 border border-brand/10 mb-3">
+                        <span class="text-[9px] font-inter text-brand tracking-wider uppercase">HARDWARE</span>
+                    </div>
+                    <h4 class="text-base font-semibold text-warm-100 mb-0.5">Youssef Hegazy</h4>
+                    <p class="text-xs text-brand-dark mb-3 font-inter">Hardware & IoT Engineer</p>
+                    <p class="text-[11px] text-warm-500 leading-relaxed mb-4">مهندس إلكترونيات وخبير في أنظمة IoT. مسؤول عن تصميم وتصنيع جهاز كشف غاز CO والمستشعرات</p>
+                    <div class="team-social flex items-center justify-center gap-2">
+                        <a href="#" class="w-8 h-8 rounded-lg bg-warm-800/50 flex items-center justify-center text-warm-500 hover:text-brand hover:bg-brand/10 transition-all"><i data-lucide="linkedin" class="w-3.5 h-3.5"></i></a>
+                        <a href="#" class="w-8 h-8 rounded-lg bg-warm-800/50 flex items-center justify-center text-warm-500 hover:text-brand hover:bg-brand/10 transition-all"><i data-lucide="github" class="w-3.5 h-3.5"></i></a>
+                        <a href="#" class="w-8 h-8 rounded-lg bg-warm-800/50 flex items-center justify-center text-warm-500 hover:text-brand hover:bg-brand/10 transition-all"><i data-lucide="mail" class="w-3.5 h-3.5"></i></a>
+                    </div>
+                </div>
+
+                <!-- Member 4 -->
+                <div class="team-card rounded-2xl p-6 text-center">
+                    <div class="flex justify-center mb-5">
+                        <div class="team-ring">
+                            <div class="w-24 h-24 rounded-full overflow-hidden border-4 border-base-card">
+                                <img src="https://picsum.photos/seed/marketing-woman2/400/400.jpg" alt="Marketing" class="w-full h-full object-cover team-img">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-brand/8 border border-brand/10 mb-3">
+                        <span class="text-[9px] font-inter text-brand tracking-wider uppercase">CMO</span>
+                    </div>
+                    <h4 class="text-base font-semibold text-warm-100 mb-0.5">Anas Ahmed </h4>
+                    <p class="text-xs text-brand-dark mb-3 font-inter">Chief Marketing Officer</p>
+                    <p class="text-[11px] text-warm-500 leading-relaxed mb-4">خبيرة في التسويق الرقمي واستحواذ العملاء B2B. مسؤولة عن نشر التطبيق وبناء شراكات الورش</p>
+                    <div class="team-social flex items-center justify-center gap-2">
+                        <a href="#" class="w-8 h-8 rounded-lg bg-warm-800/50 flex items-center justify-center text-warm-500 hover:text-brand hover:bg-brand/10 transition-all"><i data-lucide="linkedin" class="w-3.5 h-3.5"></i></a>
+                        <a href="#" class="w-8 h-8 rounded-lg bg-warm-800/50 flex items-center justify-center text-warm-500 hover:text-brand hover:bg-brand/10 transition-all"><i data-lucide="twitter" class="w-3.5 h-3.5"></i></a>
+                        <a href="#" class="w-8 h-8 rounded-lg bg-warm-800/50 flex items-center justify-center text-warm-500 hover:text-brand hover:bg-brand/10 transition-all"><i data-lucide="mail" class="w-3.5 h-3.5"></i></a>
+                    </div>
+                </div>
+            </div>
+
+    </section>
+
+    <!-- AI Integration Banner -->
+    <section class="relative py-20 px-6 overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-b from-transparent via-brand/5 to-transparent pointer-events-none"></div>
+        <div class="max-w-5xl mx-auto relative z-10 text-center">
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-brand/15 bg-brand/5 mb-6">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5 text-brand"></i>
+                <span class="text-[10px] font-inter text-brand tracking-wider uppercase">AI INTEGRATION</span>
+            </div>
+            <h2 class="text-3xl md:text-4xl font-bold tracking-tight mb-6">
+                الذكاء الاصطناعي هو <span class="text-gradient">الخيط الناظم</span>
+            </h2>
+            <p class="text-warm-400 max-w-2xl mx-auto leading-relaxed mb-10">كل الخدمات الأربعة متصلة ببعض عبر محرك ذكاء اصطناعي مركزي</p>
+            <div class="grid md:grid-cols-4 gap-4">
+                <div class="glass-card rounded-xl p-4 text-center"><i data-lucide="search" class="w-6 h-6 text-brand mx-auto mb-2"></i><div class="text-[10px] text-warm-500">بحث ذكي بالصورة والنص</div></div>
+                <div class="glass-card rounded-xl p-4 text-center"><i data-lucide="brain" class="w-6 h-6 text-brand mx-auto mb-2"></i><div class="text-[10px] text-warm-500">تنبؤ بالأعطال</div></div>
+                <div class="glass-card rounded-xl p-4 text-center"><i data-lucide="shield-alert" class="w-6 h-6 text-red-400/80 mx-auto mb-2"></i><div class="text-[10px] text-warm-500">استجابة طوارئ آلية</div></div>
+                <div class="glass-card rounded-xl p-4 text-center"><i data-lucide="user-check" class="w-6 h-6 text-brand-dark mx-auto mb-2"></i><div class="text-[10px] text-warm-500">تعلم مخصص لكل مستخدم</div></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Business Model -->
+    <section class="relative py-24 px-6">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+                <span class="text-[11px] font-inter font-medium text-brand tracking-widest uppercase">Business Model</span>
+                <h2 class="text-3xl md:text-5xl font-bold mt-3 tracking-tight">نموذج <span class="text-gradient">Freemium</span> ذكي</h2>
+                <p class="text-warm-400 mt-4 max-w-xl mx-auto">التجربة الأولى مجانية لكسر حاجز الخوف وبناء الثقة</p>
+            </div>
+            <div class="max-w-3xl mx-auto glass-card rounded-2xl p-8 mb-12">
+                <div class="flex items-center gap-3 mb-6 p-4 rounded-xl bg-brand/5 border border-brand/10">
+                    <i data-lucide="quote" class="w-5 h-5 text-brand flex-shrink-0"></i>
+                    <p class="text-sm text-warm-300 leading-relaxed">إحنا بنعتمد على نموذج عمل <span class="text-brand font-semibold">Freemium</span>، التجربة الأولى مجانية عشان نكسر حاجز الخوف عند العميل ونبني ثقة، وبعدها بنحقق أرباح من <span class="text-brand font-semibold">3 قنوات مختلفة</span> (العمولات، الإعلانات، والـ Hardware)، وده بيقلل المخاطرة الاستثمارية.</p>
+                </div>
+                <div class="grid md:grid-cols-3 gap-4">
+                    <div class="text-center p-4 rounded-xl bg-base/50">
+                        <div class="w-10 h-10 rounded-xl bg-brand/8 flex items-center justify-center mx-auto mb-3"><i data-lucide="percent" class="w-5 h-5 text-brand"></i></div>
+                        <div class="text-xs font-semibold mb-1 text-warm-100">عمولات المبيعات</div>
+                        <div class="text-[10px] text-warm-500">5-10% على كل عملية شراء</div>
+                    </div>
+                    <div class="text-center p-4 rounded-xl bg-base/50">
+                        <div class="w-10 h-10 rounded-xl bg-brand/8 flex items-center justify-center mx-auto mb-3"><i data-lucide="megaphone" class="w-5 h-5 text-brand"></i></div>
+                        <div class="text-xs font-semibold mb-1 text-warm-100">إعلانات وترويج</div>
+                        <div class="text-[10px] text-warm-500">اشتراكات الورش والمعارض</div>
+                    </div>
+                    <div class="text-center p-4 rounded-xl bg-base/50">
+                        <div class="w-10 h-10 rounded-xl bg-brand/8 flex items-center justify-center mx-auto mb-3"><i data-lucide="cpu" class="w-5 h-5 text-brand-dark"></i></div>
+                        <div class="text-xs font-semibold mb-1 text-warm-100">مبيعات Hardware</div>
+                        <div class="text-[10px] text-warm-500">بيع أو اشتراك شهري</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Financial Section -->
+    <section id="financials" class="relative py-24 px-6">
+        <div class="hero-glow absolute inset-0 pointer-events-none"></div>
+        <div class="max-w-7xl mx-auto relative z-10">
+            <div class="text-center mb-16">
+                <span class="text-[11px] font-inter font-medium text-brand tracking-widest uppercase">Financial Overview</span>
+                <h2 class="text-3xl md:text-5xl font-bold mt-3 tracking-tight">الأرقام <span class="text-gradient">بتتكلم</span></h2>
+            </div>
+
+            <!-- CapEx -->
+            <div class="mb-12">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-8 h-8 rounded-lg bg-brand/8 flex items-center justify-center"><i data-lucide="rocket" class="w-4 h-4 text-brand"></i></div>
+                    <h3 class="text-lg font-semibold text-warm-100">التكاليف الأولية / التأسيس <span class="text-xs text-warm-500 font-inter font-normal">(CapEx)</span></h3>
+                    <span class="text-[10px] text-warm-500 font-inter mr-auto">مرة واحدة</span>
+                </div>
+                <div class="grid md:grid-cols-3 gap-4">
+                    <div class="stat-card glass-card rounded-2xl p-6">
+                        <div class="text-[10px] text-warm-500 font-inter mb-2">تطوير التطبيق (MVP)</div>
+                        <div class="text-2xl font-bold text-warm-100 font-inter">150,000 <span class="text-sm text-warm-500">جنيه</span></div>
+                    </div>
+                    <div class="stat-card glass-card rounded-2xl p-6">
+                        <div class="text-[10px] text-warm-500 font-inter mb-2">R&D للسينسور</div>
+                        <div class="text-2xl font-bold text-warm-100 font-inter">80,000 <span class="text-sm text-warm-500">جنيه</span></div>
+                    </div>
+                    <div class="stat-card glass-card rounded-2xl p-6">
+                        <div class="text-[10px] text-warm-500 font-inter mb-2">التسجيل والتراخيص</div>
+                        <div class="text-2xl font-bold text-warm-100 font-inter">20,000 <span class="text-sm text-warm-500">جنيه</span></div>
+                    </div>
+                </div>
+                <div class="financial-highlight rounded-xl p-4 mt-4 flex items-center justify-between">
+                    <span class="text-sm font-semibold text-warm-100">إجمالي التكاليف الأولية</span>
+                    <span class="text-xl font-bold text-gradient font-inter">250,000 جنيه</span>
+                </div>
+            </div>
+
+            <!-- OpEx -->
+            <div class="mb-12">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-8 h-8 rounded-lg bg-brand/8 flex items-center justify-center"><i data-lucide="settings" class="w-4 h-4 text-brand"></i></div>
+                    <h3 class="text-lg font-semibold text-warm-100">التكاليف التشغيلية <span class="text-xs text-warm-500 font-inter font-normal">(OpEx — السنة الأولى)</span></h3>
+                    <span class="text-[10px] text-warm-500 font-inter mr-auto">سنوياً</span>
+                </div>
+                <div class="grid md:grid-cols-3 gap-4">
+                    <div class="stat-card glass-card rounded-2xl p-6">
+                        <div class="text-[10px] text-warm-500 font-inter mb-2">استضافة السيرفرات</div>
+                        <div class="text-2xl font-bold text-warm-100 font-inter">40,000 <span class="text-sm text-warm-500">جنيه</span></div>
+                    </div>
+                    <div class="stat-card glass-card rounded-2xl p-6">
+                        <div class="text-[10px] text-warm-500 font-inter mb-2">التسويق والاستحواذ</div>
+                        <div class="text-2xl font-bold text-warm-100 font-inter">100,000 <span class="text-sm text-warm-500">جنيه</span></div>
+                    </div>
+                    <div class="stat-card glass-card rounded-2xl p-6">
+                        <div class="text-[10px] text-warm-500 font-inter mb-2">رواتب فريق العمل</div>
+                        <div class="text-2xl font-bold text-warm-100 font-inter">240,000 <span class="text-sm text-warm-500">جنيه</span></div>
+                    </div>
+                </div>
+                <div class="rounded-xl p-4 mt-4 flex items-center justify-between" style="background: linear-gradient(135deg, rgba(234,179,8,0.04), rgba(234,179,8,0.01)); border: 1px solid rgba(234,179,8,0.12);">
+                    <span class="text-sm font-semibold text-warm-100">إجمالي التكاليف التشغيلية</span>
+                    <span class="text-xl font-bold text-gradient font-inter">380,000 جنيه</span>
+                </div>
+            </div>
+
+            <!-- Revenue -->
+            <div class="mb-12">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-8 h-8 rounded-lg bg-brand/8 flex items-center justify-center"><i data-lucide="trending-up" class="w-4 h-4 text-brand"></i></div>
+                    <h3 class="text-lg font-semibold text-warm-100">مصادر الدخل <span class="text-xs text-warm-500 font-inter font-normal">(Revenue — السنة الأولى)</span></h3>
+                    <span class="text-[10px] text-brand font-inter mr-auto">بعد التجربة المجانية</span>
+                </div>
+                <div class="grid md:grid-cols-3 gap-4">
+                    <div class="stat-card glass-card rounded-2xl p-6">
+                        <div class="text-[10px] text-warm-500 font-inter mb-2">عمولات المبيعات</div>
+                        <div class="text-2xl font-bold text-warm-100 font-inter">200,000 <span class="text-sm text-warm-500">جنيه</span></div>
+                    </div>
+                    <div class="stat-card glass-card rounded-2xl p-6">
+                        <div class="text-[10px] text-warm-500 font-inter mb-2">الإعلانات والترويج</div>
+                        <div class="text-2xl font-bold text-warm-100 font-inter">100,000 <span class="text-sm text-warm-500">جنيه</span></div>
+                    </div>
+                    <div class="stat-card glass-card rounded-2xl p-6">
+                        <div class="text-[10px] text-warm-500 font-inter mb-2">مبيعات السينسور</div>
+                        <div class="text-2xl font-bold text-warm-100 font-inter">150,000 <span class="text-sm text-warm-500">جنيه</span></div>
+                    </div>
+                </div>
+                <div class="rounded-xl p-4 mt-4 flex items-center justify-between" style="background: linear-gradient(135deg, rgba(234,179,8,0.04), rgba(234,179,8,0.01)); border: 1px solid rgba(234,179,8,0.12);">
+                    <span class="text-sm font-semibold text-warm-100">إجمالي الإيرادات</span>
+                    <span class="text-xl font-bold text-gradient font-inter">450,000 جنيه</span>
+                </div>
+            </div>
+
+            <!-- Profitability -->
+            <div class="max-w-3xl mx-auto">
+                <div class="rounded-2xl border border-brand/15 bg-gradient-to-b from-brand/5 to-transparent p-8">
+                    <h3 class="text-lg font-semibold mb-6 text-center text-warm-100">الربحية ونقطة التعادل</h3>
+                    <div class="grid grid-cols-3 gap-6 mb-6">
+                        <div class="text-center"><div class="text-[10px] text-warm-500 font-inter mb-1">الإيرادات</div><div class="text-xl font-bold text-brand font-inter">450K</div></div>
+                        <div class="text-center border-x border-warm-800"><div class="text-[10px] text-warm-500 font-inter mb-1">المصاريف التشغيلية</div><div class="text-xl font-bold text-red-400/80 font-inter">380K</div></div>
+                        <div class="text-center"><div class="text-[10px] text-warm-500 font-inter mb-1">مجمل الربح</div><div class="text-xl font-bold text-brand font-inter">70K</div></div>
+                    </div>
+                    <div class="relative h-8 rounded-full bg-base overflow-hidden mb-6">
+                        <div class="absolute top-0 right-0 h-full rounded-full bg-gradient-to-l from-brand to-brand-dark" style="width:100%"></div>
+                        <div class="absolute top-0 right-0 h-full rounded-full bg-red-500/20" style="width:84.4%"></div>
+                        <div class="absolute inset-0 flex items-center justify-center text-[10px] font-inter font-bold mix-blend-difference text-white">84.4% مصاريف ← 15.6% ربح</div>
+                    </div>
+                    <div class="rounded-xl bg-brand/5 border border-brand/10 p-4 flex items-start gap-3">
+                        <i data-lucide="info" class="w-4 h-4 text-brand flex-shrink-0 mt-0.5"></i>
+                        <div>
+                            <span class="text-xs font-semibold text-brand">ملاحظة للجنة التحكيم:</span>
+                            <p class="text-xs text-warm-400 mt-1 leading-relaxed">نقطة التعادل (تغطية كامل مصاريف التأسيس والتشغيل) متوقع الوصول إليها في <span class="text-warm-100 font-semibold">منتصف السنة الثانية</span> مع زيادة قاعدة المستخدمين وانتشار السينسور</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Roadmap -->
+    <section class="relative py-24 px-6">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-16">
+                <span class="text-[11px] font-inter font-medium text-brand tracking-widest uppercase">Roadmap</span>
+                <h2 class="text-3xl md:text-4xl font-bold mt-3 tracking-tight">خارطة <span class="text-gradient">الطريق</span></h2>
+            </div>
+            <div class="relative pr-8">
+                <div class="absolute top-0 bottom-0 right-[5px] w-0.5 bg-gradient-to-b from-brand/30 via-brand/15 to-transparent"></div>
+                <div class="space-y-10">
+                    <div class="relative">
+                        <div class="absolute top-1.5 right-[-23px] w-3 h-3 rounded-full bg-brand shadow-lg shadow-brand/30"></div>
+                        <div class="glass-card rounded-xl p-6 mr-4">
+                            <div class="flex items-center gap-3 mb-2"><span class="text-[10px] font-inter text-brand bg-brand/8 px-2 py-0.5 rounded">PHASE 1</span><span class="text-[10px] text-warm-500 font-inter">الشهور 1-3</span></div>
+                            <h4 class="text-sm font-semibold mb-1 text-warm-100">التأسيس والتطوير</h4>
+                            <p class="text-xs text-warm-500">تطوير MVP، تصنيع أول دفعة من السينسورات، التسجيل القانوني، بدء شراكات الورش</p>
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <div class="absolute top-1.5 right-[-23px] w-3 h-3 rounded-full bg-brand-dark shadow-lg shadow-brand-dark/30"></div>
+                        <div class="glass-card rounded-xl p-6 mr-4">
+                            <div class="flex items-center gap-3 mb-2"><span class="text-[10px] font-inter text-brand-dark bg-brand-dark/8 px-2 py-0.5 rounded">PHASE 2</span><span class="text-[10px] text-warm-500 font-inter">الشهور 4-8</span></div>
+                            <h4 class="text-sm font-semibold mb-1 text-warm-100">الإطلاق والنمو</h4>
+                            <p class="text-xs text-warm-500">إطلاق التطبيق، حملة تسويقية، شراكة هيئة تعليم القيادة، نشر أجهزة الإنقاذ</p>
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <div class="absolute top-1.5 right-[-23px] w-3 h-3 rounded-full bg-warm-400 shadow-lg shadow-warm-400/20"></div>
+                        <div class="glass-card rounded-xl p-6 mr-4">
+                            <div class="flex items-center gap-3 mb-2"><span class="text-[10px] font-inter text-warm-400 bg-warm-400/8 px-2 py-0.5 rounded">PHASE 3</span><span class="text-[10px] text-warm-500 font-inter">الشهور 9-18</span></div>
+                            <h4 class="text-sm font-semibold mb-1 text-warm-100">التوسع والربحية</h4>
+                            <p class="text-xs text-warm-500">التوسع الجغرافي، نقطة التعادل، دقة ML فوق 95%، شراكات مع التأمين والمصانع</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="relative py-24 px-6">
+        <div class="absolute inset-0 bg-gradient-to-b from-transparent via-brand/5 to-transparent pointer-events-none"></div>
+        <div class="max-w-3xl mx-auto relative z-10 text-center">
+            <div class="animate-float">
+                <div class="w-16 h-16 rounded-2xl bg-brand/8 flex items-center justify-center mx-auto mb-6"><i data-lucide="zap" class="w-8 h-8 text-brand"></i></div>
+            </div>
+            <h2 class="text-3xl md:text-4xl font-bold tracking-tight mb-4">جاهز تبدأ <span class="text-gradient">رحلتك مع elii؟</span></h2>
+            <p class="text-warm-400 mb-8 max-w-lg mx-auto">سواء صاحب ورشة أو سائق عادي أو متدرب قيادة — عندنا مكانك في النظام البيئي الأول المتكامل</p>
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <button class="btn-primary text-sm font-bold px-8 py-4 rounded-xl flex items-center gap-2"><i data-lucide="download" class="w-4 h-4"></i>حمّل التطبيق الآن — مجاناً</button>
+                <button class="text-sm font-medium text-warm-300 hover:text-warm-100 px-8 py-4 rounded-xl border border-warm-700 hover:border-brand/30 transition-all flex items-center gap-2"><i data-lucide="handshake" class="w-4 h-4"></i>سجّل ورشتك كشريك</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="border-t border-warm-800 py-12 px-6">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-brand flex items-center justify-center"><span class="text-base font-bold font-inter" style="color:#0C0806;">e</span></div>
+                    <span class="text-xl font-bold text-brand font-inter tracking-tight">elii</span>
+                    <span class="text-[10px] text-warm-600 font-inter">Early Logic Instant Insight</span>
+                </div>
+                <div class="text-xs text-warm-600 text-center">© 2025 elii. كل خدمات السيارات في مكان واحد — مدعومة بالذكاء الاصطناعي</div>
+                <div class="flex items-center gap-4">
+                    <a href="#" class="text-warm-500 hover:text-brand transition-colors"><i data-lucide="twitter" class="w-4 h-4"></i></a>
+                    <a href="#" class="text-warm-500 hover:text-brand transition-colors"><i data-lucide="linkedin" class="w-4 h-4"></i></a>
+                    <a href="#" class="text-warm-500 hover:text-brand transition-colors"><i data-lucide="instagram" class="w-4 h-4"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        let menuOpen = false;
+        mobileMenuBtn.addEventListener('click', () => {
+            menuOpen = !menuOpen;
+            mobileMenu.classList.toggle('hidden', !menuOpen);
+            document.body.style.overflow = menuOpen ? 'hidden' : '';
+        });
+        document.querySelectorAll('.mobile-link').forEach(link => {
+            link.addEventListener('click', () => {
+                menuOpen = false;
+                mobileMenu.classList.add('hidden');
+                document.body.style.overflow = '';
+            });
+        });
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('section-visible');
+                    entry.target.querySelectorAll('.animate-reveal').forEach((el, i) => {
+                        el.style.animationPlayState = 'running';
+                        el.style.animationDelay = `${i * 0.1}s`;
+                    });
+                }
+            });
+        }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+        document.querySelectorAll('section').forEach(s => observer.observe(s));
+        const nav = document.querySelector('nav');
+        window.addEventListener('scroll', () => {
+            nav.style.background = window.scrollY > 50 ? 'rgba(12,8,6,0.9)' : 'rgba(12,8,6,0.7)';
+        });
+    </script>
+</body>
+</html>
